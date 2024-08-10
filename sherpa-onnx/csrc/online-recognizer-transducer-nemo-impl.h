@@ -59,6 +59,29 @@ class OnlineRecognizerTransducerNeMoImpl : public OnlineRecognizerImpl {
     PostInit();
   }
 
+  // 新しいコンストラクタを追加
+  OnlineRecognizerTransducerNeMoImpl(const OnlineRecognizerConfig &config, Ort::SessionOptions* session_options)
+      : OnlineRecognizerImpl(config),
+        config_(config),
+        symbol_table_(config.model_config.tokens),
+        endpoint_(config_.endpoint_config),
+        model_(std::make_unique<OnlineTransducerNeMoModel>(config.model_config, session_options)) {
+    if (config.decoding_method == "greedy_search") {
+      decoder_ = std::make_unique<OnlineTransducerGreedySearchNeMoDecoder>(
+          model_.get(), config_.blank_penalty);
+    } else {
+      SHERPA_ONNX_LOGE("Unsupported decoding method: %s",
+                       config.decoding_method.c_str());
+      exit(-1);
+    }
+    PostInit();
+  }
+
+
+
+
+
+
 #if __ANDROID_API__ >= 9
   explicit OnlineRecognizerTransducerNeMoImpl(
       AAssetManager *mgr, const OnlineRecognizerConfig &config)

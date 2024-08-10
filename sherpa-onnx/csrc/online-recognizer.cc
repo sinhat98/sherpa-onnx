@@ -193,10 +193,17 @@ std::string OnlineRecognizerConfig::ToString() const {
 OnlineRecognizer::OnlineRecognizer(const OnlineRecognizerConfig &config)
     : impl_(OnlineRecognizerImpl::Create(config)) {}
 
+// 新しいコンストラクタの実装
+OnlineRecognizer::OnlineRecognizer(const OnlineRecognizerConfig &config, Ort::SessionOptions* session_options)
+    : impl_(OnlineRecognizerImpl::Create(config, session_options)) {}
+
 #if __ANDROID_API__ >= 9
 OnlineRecognizer::OnlineRecognizer(AAssetManager *mgr,
                                    const OnlineRecognizerConfig &config)
     : impl_(OnlineRecognizerImpl::Create(mgr, config)) {}
+
+OnlineRecognizer::OnlineRecognizer(AAssetManager *mgr, const OnlineRecognizerConfig &config, Ort::SessionOptions &session_options)
+    : impl_(OnlineRecognizerImpl::Create(mgr, config, session_options)) {}
 #endif
 
 OnlineRecognizer::~OnlineRecognizer() = default;

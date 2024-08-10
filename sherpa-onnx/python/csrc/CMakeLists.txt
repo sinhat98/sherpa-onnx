@@ -1,4 +1,5 @@
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_BINARY_DIR}/_deps/onnxruntime-src/include)   # ONNX Runtimeのインクルードディレクトリを追加
 
 set(srcs
   audio-tagging.cc
@@ -58,6 +59,21 @@ if(SHERPA_ONNX_ENABLE_TTS)
   )
 endif()
 
+# Include ONNX runtime configuration but avoid redefining the library
+if (NOT TARGET onnxruntime)
+  include(${CMAKE_SOURCE_DIR}/cmake/onnxruntime.cmake)
+endif()
+
+# Check if onnxruntime and CUDA providers are already defined
+if (NOT TARGET onnxruntime)
+  # Import onnxruntime library
+  add_library(onnxruntime SHARED IMPORTED)
+  set_target_properties(onnxruntime PROPERTIES
+    IMPORTED_LOCATION ${location_onnxruntime_lib}
+    INTERFACE_INCLUDE_DIRECTORIES "${location_onnxruntime_header_dir}"
+  )
+endif()
+
 pybind11_add_module(_sherpa_onnx ${srcs})
 
 if(APPLE)
@@ -91,3 +107,4 @@ endif()
 install(TARGETS _sherpa_onnx
   DESTINATION ../
 )
+

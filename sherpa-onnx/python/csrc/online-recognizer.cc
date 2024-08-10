@@ -1,13 +1,41 @@
-// sherpa-onnx/python/csrc/online-recongizer.cc
+// sherpa-onnx/python/csrc/online-recognizer.cc
 //
 // Copyright (c)  2023  Xiaomi Corporation
 
 #include "sherpa-onnx/python/csrc/online-recognizer.h"
+#include "onnxruntime_cxx_api.h"
 
 #include <string>
 #include <vector>
 
 #include "sherpa-onnx/csrc/online-recognizer.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+namespace py = pybind11;
+
+namespace pybind11 { namespace detail {
+
+template <> struct type_caster<Ort::SessionOptions> {
+public:
+    PYBIND11_TYPE_CASTER(Ort::SessionOptions*, _("Ort::SessionOptions"));
+
+    bool load(py::handle src, bool) {
+        if (py::isinstance<py::capsule>(src)) {
+            py::capsule capsule = py::reinterpret_borrow<py::capsule>(src);
+            value = static_cast<Ort::SessionOptions*>(capsule.get_pointer());
+            return value != nullptr;
+        }
+        return false;
+    }
+
+    static py::handle cast(Ort::SessionOptions* src, py::return_value_policy policy, py::handle parent) {
+        if (!src) return py::none().inc_ref();
+        return py::capsule(src, "Ort::SessionOptions");
+    }
+};
+
+}} // namespace pybind11::detail
 
 namespace sherpa_onnx {
 
@@ -93,6 +121,17 @@ void PybindOnlineRecognizer(py::module *m) {
   py::class_<PyClass>(*m, "OnlineRecognizer")
       .def(py::init<const OnlineRecognizerConfig &>(), py::arg("config"),
            py::call_guard<py::gil_scoped_release>())
+      .def(py::init<const OnlineRecognizerConfig &, Ort::SessionOptions*>(),
+           py::arg("config"), py::arg("session_options"),
+           py::call_guard<py::gil_scoped_release>())
+#if __ANDROID_API__ >= 9
+      .def(py::init<AAssetManager *, const OnlineRecognizerConfig &>(),
+           py::arg("mgr"), py::arg("config"),
+           py::call_guard<py::gil_scoped_release>())
+      .def(py::init<AAssetManager *, const OnlineRecognizerConfig &, Ort::SessionOptions*>(),
+           py::arg("mgr"), py::arg("config"), py::arg("session_options"),
+           py::call_guard<py::gil_scoped_release>())
+#endif
       .def(
           "create_stream",
           [](const PyClass &self) { return self.CreateStream(); },

@@ -121,6 +121,49 @@ class OnlineRecognizerTransducerImpl : public OnlineRecognizerImpl {
       exit(-1);
     }
   }
+    // 新しいコンストラクタを追加
+  OnlineRecognizerTransducerImpl(const OnlineRecognizerConfig &config, Ort::SessionOptions* session_options)
+      : OnlineRecognizerImpl(config),
+        config_(config),
+        model_(OnlineTransducerModel::Create(config.model_config, session_options)),
+        sym_(config.model_config.tokens),
+        endpoint_(config_.endpoint_config) {
+    if (sym_.Contains("<unk>")) {
+      unk_id_ = sym_["<unk>"];
+    }
+
+    model_->SetFeatureDim(config.feat_config.feature_dim);
+
+    if (config.decoding_method == "modified_beam_search") {
+      if (!config_.model_config.bpe_vocab.empty()) {
+        bpe_encoder_ = std::make_unique<ssentencepiece::Ssentencepiece>(
+            config_.model_config.bpe_vocab);
+      }
+
+      if (!config_.hotwords_file.empty()) {
+        InitHotwords();
+      }
+
+      if (!config_.lm_config.model.empty()) {
+        lm_ = OnlineLM::Create(config_.lm_config);
+      }
+
+      decoder_ = std::make_unique<OnlineTransducerModifiedBeamSearchDecoder>(
+          model_.get(), lm_.get(), config_.max_active_paths,
+          config_.lm_config.scale, unk_id_, config_.blank_penalty,
+          config_.temperature_scale);
+
+    } else if (config.decoding_method == "greedy_search") {
+      decoder_ = std::make_unique<OnlineTransducerGreedySearchDecoder>(
+          model_.get(), unk_id_, config_.blank_penalty,
+          config_.temperature_scale);
+
+    } else {
+      SHERPA_ONNX_LOGE("Unsupported decoding method: %s",
+                       config.decoding_method.c_str());
+      exit(-1);
+    }
+  }
 
 #if __ANDROID_API__ >= 9
   explicit OnlineRecognizerTransducerImpl(AAssetManager *mgr,
@@ -170,6 +213,7 @@ class OnlineRecognizerTransducerImpl : public OnlineRecognizerImpl {
       exit(-1);
     }
   }
+  OnlineRecognizerTransducerImpl(AAssetManager *mgr, const OnlineRecognizerConfig &config, Ort::SessionOptions &session_options);
 #endif
 
   std::unique_ptr<OnlineStream> CreateStream() const override {

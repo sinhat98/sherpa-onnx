@@ -108,11 +108,30 @@ class OnlineRecognizerParaformerImpl : public OnlineRecognizerImpl {
           config.decoding_method.c_str());
       exit(-1);
     }
-
     // Paraformer models assume input samples are in the range
     // [-32768, 32767], so we set normalize_samples to false
     config_.feat_config.normalize_samples = false;
   }
+
+   OnlineRecognizerParaformerImpl(const OnlineRecognizerConfig &config, Ort::SessionOptions* session_options) // 新しいコンストラクタを追加
+      : OnlineRecognizerImpl(config),
+        config_(config),
+        model_(config.model_config),
+        sym_(config.model_config.tokens),
+        endpoint_(config_.endpoint_config) {
+    if (config.decoding_method != "greedy_search") {
+      SHERPA_ONNX_LOGE(
+          "Unsupported decoding method: %s. Support only greedy_search at "
+          "present",
+          config.decoding_method.c_str());
+      exit(-1);
+    }
+    // Paraformer models assume input samples are in the range
+    // [-32768, 32767], so we set normalize_samples to false
+    config_.feat_config.normalize_samples = false;
+  }
+ 
+
 
 #if __ANDROID_API__ >= 9
   explicit OnlineRecognizerParaformerImpl(AAssetManager *mgr,

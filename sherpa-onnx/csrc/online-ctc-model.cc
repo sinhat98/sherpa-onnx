@@ -30,6 +30,19 @@ std::unique_ptr<OnlineCtcModel> OnlineCtcModel::Create(
     exit(-1);
   }
 }
+std::unique_ptr<OnlineCtcModel> OnlineCtcModel::Create(
+    const OnlineModelConfig &config, const Ort::SessionOptions &session_options) {
+  if (!config.wenet_ctc.model.empty()) {
+    return std::make_unique<OnlineWenetCtcModel>(config);
+  } else if (!config.zipformer2_ctc.model.empty()) {
+    return std::make_unique<OnlineZipformer2CtcModel>(config);
+  } else if (!config.nemo_ctc.model.empty()) {
+    return std::make_unique<OnlineNeMoCtcModel>(config);
+  } else {
+    SHERPA_ONNX_LOGE("Please specify a CTC model");
+    exit(-1);
+  }
+}
 
 #if __ANDROID_API__ >= 9
 

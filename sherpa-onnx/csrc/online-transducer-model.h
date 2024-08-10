@@ -30,6 +30,9 @@ class OnlineTransducerModel {
   static std::unique_ptr<OnlineTransducerModel> Create(
       const OnlineModelConfig &config);
 
+    static std::unique_ptr<OnlineTransducerModel> Create(
+      const OnlineModelConfig &config, Ort::SessionOptions* session_options);
+
 #if __ANDROID_API__ >= 9
   static std::unique_ptr<OnlineTransducerModel> Create(
       AAssetManager *mgr, const OnlineModelConfig &config);

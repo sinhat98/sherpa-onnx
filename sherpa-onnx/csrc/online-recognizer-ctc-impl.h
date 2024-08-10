@@ -82,6 +82,21 @@ class OnlineRecognizerCtcImpl : public OnlineRecognizerImpl {
     InitDecoder();
   }
 
+  OnlineRecognizerCtcImpl(const OnlineRecognizerConfig &config, Ort::SessionOptions* session_options)
+      : OnlineRecognizerImpl(config),
+        config_(config),
+        model_(OnlineCtcModel::Create(config.model_config, session_options)),
+        sym_(config.model_config.tokens),
+        endpoint_(config_.endpoint_config) {
+    if (!config.model_config.wenet_ctc.model.empty()) {
+      // WeNet CTC models assume input samples are in the range
+      // [-32768, 32767], so we set normalize_samples to false
+      config_.feat_config.normalize_samples = false;
+    }
+
+    InitDecoder();
+  }
+
 #if __ANDROID_API__ >= 9
   explicit OnlineRecognizerCtcImpl(AAssetManager *mgr,
                                    const OnlineRecognizerConfig &config)

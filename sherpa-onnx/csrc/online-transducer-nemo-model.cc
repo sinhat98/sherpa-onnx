@@ -458,6 +458,10 @@ OnlineTransducerNeMoModel::OnlineTransducerNeMoModel(
     const OnlineModelConfig &config)
     : impl_(std::make_unique<Impl>(config)) {}
 
+OnlineTransducerNeMoModel::OnlineTransducerNeMoModel(
+    const OnlineModelConfig &config, Ort::SessionOptions* session_options)
+    : impl_(std::make_unique<Impl>(config)) {}
+
 #if __ANDROID_API__ >= 9
 OnlineTransducerNeMoModel::OnlineTransducerNeMoModel(
     AAssetManager *mgr, const OnlineModelConfig &config)

@@ -121,6 +121,50 @@ std::unique_ptr<OnlineTransducerModel> OnlineTransducerModel::Create(
   return nullptr;
 }
 
+std::unique_ptr<OnlineTransducerModel> OnlineTransducerModel::Create(
+    const OnlineModelConfig &config, Ort::SessionOptions* session_options) {
+  if (!config.model_type.empty()) {
+    const auto &model_type = config.model_type;
+    if (model_type == "conformer") {
+      return std::make_unique<OnlineConformerTransducerModel>(config);
+    } else if (model_type == "lstm") {
+      return std::make_unique<OnlineLstmTransducerModel>(config);
+    } else if (model_type == "zipformer") {
+      return std::make_unique<OnlineZipformerTransducerModel>(config);
+    } else if (model_type == "zipformer2") {
+      return std::make_unique<OnlineZipformer2TransducerModel>(config);
+    } else {
+      SHERPA_ONNX_LOGE(
+          "Invalid model_type: %s. Trying to load the model to get its type",
+          model_type.c_str());
+    }
+  }
+  ModelType model_type = ModelType::kUnknown;
+
+  {
+    auto buffer = ReadFile(config.transducer.encoder);
+
+    model_type = GetModelType(buffer.data(), buffer.size(), config.debug);
+  }
+
+  switch (model_type) {
+    case ModelType::kConformer:
+      return std::make_unique<OnlineConformerTransducerModel>(config);
+    case ModelType::kLstm:
+      return std::make_unique<OnlineLstmTransducerModel>(config);
+    case ModelType::kZipformer:
+      return std::make_unique<OnlineZipformerTransducerModel>(config);
+    case ModelType::kZipformer2:
+      return std::make_unique<OnlineZipformer2TransducerModel>(config);
+    case ModelType::kUnknown:
+      SHERPA_ONNX_LOGE("Unknown model type in online transducer!");
+      return nullptr;
+  }
+
+  // unreachable code
+  return nullptr;
+}
+
 Ort::Value OnlineTransducerModel::BuildDecoderInput(
     const std::vector<OnlineTransducerDecoderResult> &results) {
   int32_t batch_size = static_cast<int32_t>(results.size());

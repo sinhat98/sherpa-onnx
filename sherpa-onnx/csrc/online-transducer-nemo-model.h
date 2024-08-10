@@ -27,7 +27,7 @@ namespace sherpa_onnx {
 class OnlineTransducerNeMoModel {
  public:
   explicit OnlineTransducerNeMoModel(const OnlineModelConfig &config);
-
+  OnlineTransducerNeMoModel(const OnlineModelConfig &config, Ort::SessionOptions* session_options); // 追加
 #if __ANDROID_API__ >= 9
   OnlineTransducerNeMoModel(AAssetManager *mgr,
                             const OnlineModelConfig &config);

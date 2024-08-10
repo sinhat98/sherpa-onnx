@@ -24,16 +24,20 @@ namespace sherpa_onnx {
 class OnlineRecognizerImpl {
  public:
   explicit OnlineRecognizerImpl(const OnlineRecognizerConfig &config);
+  explicit OnlineRecognizerImpl(const OnlineRecognizerConfig &config, Ort::SessionOptions* session_options); // 追加
 
   static std::unique_ptr<OnlineRecognizerImpl> Create(
       const OnlineRecognizerConfig &config);
-
+  static std::unique_ptr<OnlineRecognizerImpl> Create(
+    const OnlineRecognizerConfig &config, Ort::SessionOptions* session_options);
 #if __ANDROID_API__ >= 9
   OnlineRecognizerImpl(AAssetManager *mgr,
                        const OnlineRecognizerConfig &config);
 
   static std::unique_ptr<OnlineRecognizerImpl> Create(
       AAssetManager *mgr, const OnlineRecognizerConfig &config);
+   static std::unique_ptr<OnlineRecognizerImpl> Create(
+      AAssetManager *mgr, const OnlineRecognizerConfig &config, Ort::SessionOptions &session_options); // 追加
 #endif
 
   virtual ~OnlineRecognizerImpl() = default;

@@ -1,7 +1,6 @@
 # Copyright (c)  2023  Xiaomi Corporation
 from pathlib import Path
-from typing import List, Optional
-
+from typing import List, Optional, Any
 from _sherpa_onnx import (
     EndpointConfig,
     FeatureExtractorConfig,
@@ -81,6 +80,7 @@ class OnlineRecognizer(object):
         trt_engine_cache_path: str ="",
         trt_timing_cache_path: str ="",
         trt_dump_subgraphs: bool = False,
+        session_options: Any = None,
     ):
         """
         Please refer to
@@ -291,8 +291,10 @@ class OnlineRecognizer(object):
             rule_fsts=rule_fsts,
             rule_fars=rule_fars,
         )
-
-        self.recognizer = _Recognizer(recognizer_config)
+        if session_options is not None:
+          self.recognizer = _Recognizer(recognizer_config, session_options)
+        else:
+          self.recognizer = _Recognizer(recognizer_config)
         self.config = recognizer_config
         return self
 

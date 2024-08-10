@@ -25,6 +25,9 @@ class OnlineCtcModel {
   static std::unique_ptr<OnlineCtcModel> Create(
       const OnlineModelConfig &config);
 
+  static std::unique_ptr<OnlineCtcModel> Create(
+      const OnlineModelConfig &config, const Ort::SessionOptions &session_options);
+
 #if __ANDROID_API__ >= 9
   static std::unique_ptr<OnlineCtcModel> Create(
       AAssetManager *mgr, const OnlineModelConfig &config);

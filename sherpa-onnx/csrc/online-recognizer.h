@@ -144,8 +144,13 @@ class OnlineRecognizer {
  public:
   explicit OnlineRecognizer(const OnlineRecognizerConfig &config);
 
+  // 追加
+  // create a recognizer with onnxruntime session options
+  OnlineRecognizer(const OnlineRecognizerConfig &config, Ort::SessionOptions* session_options);
+
 #if __ANDROID_API__ >= 9
   OnlineRecognizer(AAssetManager *mgr, const OnlineRecognizerConfig &config);
+  OnlineRecognizer(AAssetManager *mgr, const OnlineRecognizerConfig &config, Ort::SessionOptions &session_options); // 追加
 #endif
 
   ~OnlineRecognizer();
