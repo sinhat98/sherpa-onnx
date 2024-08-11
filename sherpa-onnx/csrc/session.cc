@@ -45,6 +45,8 @@ static Ort::SessionOptions GetSessionOptionsImpl(
 
   sess_opts.SetInterOpNumThreads(num_threads);
 
+  sess_opts.EnableProfiling("onnxruntime_profile");
+
   std::vector<std::string> available_providers = Ort::GetAvailableProviders();
   std::ostringstream os;
   for (const auto &ep : available_providers) {

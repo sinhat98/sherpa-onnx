@@ -468,4 +468,38 @@ Ort::Value OnlineZipformer2TransducerModel::RunJoiner(Ort::Value encoder_out,
   return std::move(logit[0]);
 }
 
+std::string OnlineZipformer2TransducerModel::EndProfiling(OrtAllocator* allocator) {
+  std::string result;
+
+  if (encoder_sess_) {
+    auto encoder_profile_file = encoder_sess_->EndProfilingAllocated(allocator);
+    if (encoder_profile_file) {
+      result += "Encoder profiling file: ";
+      result += encoder_profile_file.get();
+      result += "\n";
+    }
+  }
+
+  if (decoder_sess_) {
+    auto decoder_profile_file = decoder_sess_->EndProfilingAllocated(allocator);
+    if (decoder_profile_file) {
+      result += "Decoder profiling file: ";
+      result += decoder_profile_file.get();
+      result += "\n";
+    }
+  }
+
+  if (joiner_sess_) {
+    auto joiner_profile_file = joiner_sess_->EndProfilingAllocated(allocator);
+    if (joiner_profile_file) {
+      result += "Joiner profiling file: ";
+      result += joiner_profile_file.get();
+      result += "\n";
+    }
+  }
+
+  return result.empty() ? "No profiling data found." : result;
+}
+
+
 }  // namespace sherpa_onnx

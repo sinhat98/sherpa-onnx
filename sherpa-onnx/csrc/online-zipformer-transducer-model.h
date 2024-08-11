@@ -54,6 +54,7 @@ class OnlineZipformerTransducerModel : public OnlineTransducerModel {
   int32_t VocabSize() const override { return vocab_size_; }
   OrtAllocator *Allocator() override { return allocator_; }
 
+
  private:
   void InitEncoder(void *model_data, size_t model_data_length);
   void InitDecoder(void *model_data, size_t model_data_length);
@@ -63,6 +64,9 @@ class OnlineZipformerTransducerModel : public OnlineTransducerModel {
   Ort::Env env_;
   Ort::SessionOptions sess_opts_;
   Ort::AllocatorWithDefaultOptions allocator_;
+
+  // // プロファイリングを終了し、そのファイル名を取得するメソッド
+  std::string EndProfiling(OrtAllocator* allocator) override;
 
   std::unique_ptr<Ort::Session> encoder_sess_;
   std::unique_ptr<Ort::Session> decoder_sess_;

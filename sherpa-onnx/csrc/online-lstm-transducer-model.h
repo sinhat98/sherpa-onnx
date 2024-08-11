@@ -63,6 +63,9 @@ class OnlineLstmTransducerModel : public OnlineTransducerModel {
   Ort::Env env_;
   Ort::SessionOptions sess_opts_;
   Ort::AllocatorWithDefaultOptions allocator_;
+  std::string EndProfiling(OrtAllocator* allocator) override;
+
+
 
   std::unique_ptr<Ort::Session> encoder_sess_;
   std::unique_ptr<Ort::Session> decoder_sess_;

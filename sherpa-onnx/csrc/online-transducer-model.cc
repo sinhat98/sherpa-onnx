@@ -42,6 +42,8 @@ static ModelType GetModelType(char *model_data, size_t model_data_length,
   sess_opts.SetIntraOpNumThreads(1);
   sess_opts.SetInterOpNumThreads(1);
 
+  sess_opts.EnableProfiling("onnxruntime_online_transducer_profile");
+
   auto sess = std::make_unique<Ort::Session>(env, model_data, model_data_length,
                                              sess_opts);
 
@@ -154,6 +156,40 @@ Ort::Value OnlineTransducerModel::BuildDecoderInput(
   }
   return decoder_input;
 }
+
+// std::string OnlineTransducerModel::EndProfiling(OrtAllocator* allocator) {
+//   // 各セッションのプロファイリングを終了し、プロファイリングファイル名を取得
+//   std::string result;
+
+//   if (encoder_sess_) {
+//     auto encoder_profile_file = encoder_sess_->EndProfilingAllocated(allocator);
+//     if (encoder_profile_file) {
+//       result += "Encoder profiling file: ";
+//       result += encoder_profile_file.get();
+//       result += "\n";
+//     }
+//   }
+
+//   if (decoder_sess_) {
+//     auto decoder_profile_file = decoder_sess_->EndProfilingAllocated(allocator);
+//     if (decoder_profile_file) {
+//       result += "Decoder profiling file: ";
+//       result += decoder_profile_file.get();
+//       result += "\n";
+//     }
+//   }
+
+//   if (joiner_sess_) {
+//     auto joiner_profile_file = joiner_sess_->EndProfilingAllocated(allocator);
+//     if (joiner_profile_file) {
+//       result += "Joiner profiling file: ";
+//       result += joiner_profile_file.get();
+//       result += "\n";
+//     }
+//   }
+
+//   return result.empty() ? "No profiling data found." : result;
+// }
 
 #if __ANDROID_API__ >= 9
 std::unique_ptr<OnlineTransducerModel> OnlineTransducerModel::Create(

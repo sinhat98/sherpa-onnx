@@ -30,9 +30,12 @@ std::unique_ptr<OnlineRecognizerImpl> OnlineRecognizerImpl::Create(
   if (!config.model_config.transducer.encoder.empty()) {
     Ort::Env env(ORT_LOGGING_LEVEL_WARNING);
 
+    Ort::SessionOptions sess_opts;
+    sess_opts.EnableProfiling("onnxruntime_online_recognizer_profile.log");
+
     auto decoder_model = ReadFile(config.model_config.transducer.decoder);
     auto sess = std::make_unique<Ort::Session>(
-        env, decoder_model.data(), decoder_model.size(), Ort::SessionOptions{});
+        env, decoder_model.data(), decoder_model.size(), sess_opts);  
 
     size_t node_count = sess->GetOutputCount();
 

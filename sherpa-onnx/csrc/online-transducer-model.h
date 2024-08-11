@@ -27,6 +27,9 @@ class OnlineTransducerModel {
  public:
   virtual ~OnlineTransducerModel() = default;
 
+  // 純粋仮想関数として定義
+  virtual std::string EndProfiling(OrtAllocator* allocator) = 0;
+
   static std::unique_ptr<OnlineTransducerModel> Create(
       const OnlineModelConfig &config);
 

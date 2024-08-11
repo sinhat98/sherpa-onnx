@@ -14,6 +14,9 @@
 #include <utility>
 #include <vector>
 
+#include <chrono>  // 追加
+#include <ctime>   // 追加
+
 #if __ANDROID_API__ >= 9
 #include "android/asset_manager.h"
 #include "android/asset_manager_jni.h"
@@ -193,10 +196,15 @@ class OfflineRecognizerTransducerImpl : public OfflineRecognizerImpl {
   }
 
   void DecodeStreams(OfflineStream **ss, int32_t n) const override {
+    using Clock = std::chrono::high_resolution_clock;  // 型エイリアスを定義
+    auto start = Clock::now();
+
     auto memory_info =
         Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeDefault);
 
     int32_t feat_dim = ss[0]->FeatureDim();
+
+    auto start_feature_extraction = Clock::now();
 
     std::vector<Ort::Value> features;
 
@@ -218,6 +226,12 @@ class OfflineRecognizerTransducerImpl : public OfflineRecognizerImpl {
           shape.data(), shape.size());
       features.push_back(std::move(x));
     }
+    
+    auto end_feature_extraction = Clock::now();
+    std::chrono::duration<double> feature_extraction_time = end_feature_extraction - start_feature_extraction;
+    std::cout << "Feature extraction time: " << feature_extraction_time.count() << " seconds." << std::endl;
+
+    auto start_padding = Clock::now();
 
     std::vector<const Ort::Value *> features_pointer(n);
     for (int32_t i = 0; i != n; ++i) {
@@ -232,9 +246,26 @@ class OfflineRecognizerTransducerImpl : public OfflineRecognizerImpl {
     Ort::Value x = PadSequence(model_->Allocator(), features_pointer,
                                -23.025850929940457f);
 
+    auto end_padding = Clock::now();
+    std::chrono::duration<double> padding_time = end_padding - start_padding;
+    std::cout << "Padding time: " << padding_time.count() << " seconds." << std::endl;
+
+    auto start_encoder = Clock::now();
+
     auto t = model_->RunEncoder(std::move(x), std::move(x_length));
+
+    auto end_encoder = Clock::now();
+    std::chrono::duration<double> encoder_time = end_encoder - start_encoder;
+    std::cout << "RunEncoder time: " << encoder_time.count() << " seconds." << std::endl;
+
+    auto start_decoder = Clock::now();
+
     auto results =
         decoder_->Decode(std::move(t.first), std::move(t.second), ss, n);
+
+    auto end_decoder = Clock::now();
+    std::chrono::duration<double> decoder_time = end_decoder - start_decoder;
+    std::cout << "Decoder time: " << decoder_time.count() << " seconds." << std::endl;
 
     int32_t frame_shift_ms = 10;
     for (int32_t i = 0; i != n; ++i) {
@@ -244,6 +275,10 @@ class OfflineRecognizerTransducerImpl : public OfflineRecognizerImpl {
 
       ss[i]->SetResult(r);
     }
+
+    auto end = Clock::now();
+    std::chrono::duration<double> total_time = end - start;
+    std::cout << "Total DecodeStreams time: " << total_time.count() << " seconds." << std::endl;
   }
 
   OfflineRecognizerConfig GetConfig() const override {

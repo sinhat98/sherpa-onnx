@@ -70,10 +70,12 @@ class OnlineZipformer2TransducerModel : public OnlineTransducerModel {
   Ort::SessionOptions joiner_sess_opts_;
 
   Ort::AllocatorWithDefaultOptions allocator_;
+  std::string EndProfiling(OrtAllocator* allocator) override;
 
   std::unique_ptr<Ort::Session> encoder_sess_;
   std::unique_ptr<Ort::Session> decoder_sess_;
   std::unique_ptr<Ort::Session> joiner_sess_;
+
 
   std::vector<std::string> encoder_input_names_;
   std::vector<const char *> encoder_input_names_ptr_;

@@ -267,4 +267,36 @@ Ort::Value OnlineConformerTransducerModel::RunJoiner(Ort::Value encoder_out,
   return std::move(logit[0]);
 }
 
+std::string OnlineConformerTransducerModel::EndProfiling(OrtAllocator* allocator) {
+  std::string result;
+
+  if (this->encoder_sess_) {
+    auto encoder_profile_file = this->encoder_sess_->EndProfilingAllocated(allocator);
+    if (encoder_profile_file) {
+      result += "Encoder profiling file: ";
+      result += encoder_profile_file.get();
+      result += "\n";
+    }
+  }
+
+  if (this->decoder_sess_) {
+    auto decoder_profile_file = this->decoder_sess_->EndProfilingAllocated(allocator);
+    if (decoder_profile_file) {
+      result += "Decoder profiling file: ";
+      result += decoder_profile_file.get();
+      result += "\n";
+    }
+  }
+
+  if (this->joiner_sess_) {
+    auto joiner_profile_file = this->joiner_sess_->EndProfilingAllocated(allocator);
+    if (joiner_profile_file) {
+      result += "Joiner profiling file: ";
+      result += joiner_profile_file.get();
+      result += "\n";
+    }
+  }
+
+  return result.empty() ? "No profiling data found." : result;
+}
 }  // namespace sherpa_onnx
