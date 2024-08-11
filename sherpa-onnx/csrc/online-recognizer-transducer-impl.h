@@ -14,6 +14,10 @@
 #include <utility>
 #include <vector>
 
+#include <chrono>  // 追加
+#include <ctime>   // 追加
+#include <iostream>
+
 #if __ANDROID_API__ >= 9
 #include "android/asset_manager.h"
 #include "android/asset_manager_jni.h"
@@ -259,10 +263,11 @@ class OnlineRecognizerTransducerImpl : public OnlineRecognizerImpl {
     }
   }
 
-  void DecodeStreams(OnlineStream **ss, int32_t n) const override {
+void DecodeStreams(OnlineStream **ss, int32_t n) const override {
+    using Clock = std::chrono::high_resolution_clock;
+
     int32_t chunk_size = model_->ChunkSize();
     int32_t chunk_shift = model_->ChunkShift();
-
     int32_t feature_dim = ss[0]->FeatureDim();
 
     std::vector<OnlineTransducerDecoderResult> results(n);
@@ -270,6 +275,8 @@ class OnlineRecognizerTransducerImpl : public OnlineRecognizerImpl {
     std::vector<std::vector<Ort::Value>> states_vec(n);
     std::vector<int64_t> all_processed_frames(n);
     bool has_context_graph = false;
+
+    auto start_context_check = Clock::now();
 
     for (int32_t i = 0; i != n; ++i) {
       if (!has_context_graph && ss[i]->GetContextGraph()) {
@@ -280,7 +287,6 @@ class OnlineRecognizerTransducerImpl : public OnlineRecognizerImpl {
       std::vector<float> features =
           ss[i]->GetFrames(num_processed_frames, chunk_size);
 
-      // Question: should num_processed_frames include chunk_shift?
       ss[i]->GetNumProcessedFrames() += chunk_shift;
 
       std::copy(features.begin(), features.end(),
@@ -291,6 +297,11 @@ class OnlineRecognizerTransducerImpl : public OnlineRecognizerImpl {
       all_processed_frames[i] = num_processed_frames;
     }
 
+    auto end_context_check = Clock::now();
+    std::chrono::duration<double> context_check_time = end_context_check - start_context_check;
+    SHERPA_ONNX_LOGE("Context check and feature extraction time: %f seconds.", context_check_time.count());
+
+    auto start_tensor_creation = Clock::now();
     auto memory_info =
         Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeDefault);
 
@@ -308,15 +319,33 @@ class OnlineRecognizerTransducerImpl : public OnlineRecognizerImpl {
         processed_frames_shape.data(), processed_frames_shape.size());
 
     auto states = model_->StackStates(states_vec);
+    
+    auto end_tensor_creation = Clock::now();
+    std::chrono::duration<double> tensor_creation_time = end_tensor_creation - start_tensor_creation;
+    SHERPA_ONNX_LOGE("Tensor creation and state stacking time: %f seconds.", tensor_creation_time.count());
+
+    auto start_encoder = Clock::now();
 
     auto pair = model_->RunEncoder(std::move(x), std::move(states),
                                    std::move(processed_frames));
+
+    auto end_encoder = Clock::now();
+    std::chrono::duration<double> encoder_time = end_encoder - start_encoder;
+    SHERPA_ONNX_LOGE("RunEncoder time: %f seconds.", encoder_time.count());
+
+    auto start_decoder = Clock::now();
 
     if (has_context_graph) {
       decoder_->Decode(std::move(pair.first), ss, &results);
     } else {
       decoder_->Decode(std::move(pair.first), &results);
     }
+
+    auto end_decoder = Clock::now();
+    std::chrono::duration<double> decoder_time = end_decoder - start_decoder;
+    SHERPA_ONNX_LOGE("Decoder time: %f seconds.", decoder_time.count());
+
+    auto start_unstacking = Clock::now();
 
     std::vector<std::vector<Ort::Value>> next_states =
         model_->UnStackStates(pair.second);
@@ -325,7 +354,16 @@ class OnlineRecognizerTransducerImpl : public OnlineRecognizerImpl {
       ss[i]->SetResult(results[i]);
       ss[i]->SetStates(std::move(next_states[i]));
     }
+
+    auto end_unstacking = Clock::now();
+    std::chrono::duration<double> unstacking_time = end_unstacking - start_unstacking;
+    SHERPA_ONNX_LOGE("State unstacking and result setting time: %f seconds.", unstacking_time.count());
+
+    auto end_total = Clock::now();
+    std::chrono::duration<double> total_time = end_total - start_context_check;
+    SHERPA_ONNX_LOGE("Total DecodeStreams time: %f seconds.", total_time.count());
   }
+
 
   OnlineRecognizerResult GetResult(OnlineStream *s) const override {
     OnlineTransducerDecoderResult decoder_result = s->GetResult();
