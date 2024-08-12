@@ -21,6 +21,11 @@ namespace sherpa_onnx {
 class OnlineCtcModel {
  public:
   virtual ~OnlineCtcModel() = default;
+  
+  virtual std::string EndProfiling(OrtAllocator* allocator) {
+      // デフォルトの動作: 空テキストを返す
+      return "";
+  }
 
   static std::unique_ptr<OnlineCtcModel> Create(
       const OnlineModelConfig &config);

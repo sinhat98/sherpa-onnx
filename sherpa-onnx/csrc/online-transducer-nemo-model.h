@@ -27,6 +27,11 @@ namespace sherpa_onnx {
 class OnlineTransducerNeMoModel {
  public:
   explicit OnlineTransducerNeMoModel(const OnlineModelConfig &config);
+  
+  virtual std::string EndProfiling(OrtAllocator* allocator) {
+      // デフォルトの動作: 空テキストを返す
+      return "";
+  }
 
 #if __ANDROID_API__ >= 9
   OnlineTransducerNeMoModel(AAssetManager *mgr,

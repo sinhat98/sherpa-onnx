@@ -54,6 +54,10 @@ class OnlineStream;
 class OnlineTransducerDecoder {
  public:
   virtual ~OnlineTransducerDecoder() = default;
+    // Decoderクラスには実装しない方針
+//   // 純粋仮想メソッドの宣言
+//   // 追加（プロファイリング用）
+//   virtual std::string EndProfiling() const = 0;
 
   /* Return an empty result.
    *

@@ -238,12 +238,12 @@ void OnlineTransducerModifiedBeamSearchDecoder::Decode(
     r.frame_offset += num_frames;
   }
 
-  // ビームサーチが終わった時点でプロファイリングを終了
-  OrtAllocator* allocator;
-  Ort::GetApi().GetAllocatorWithDefaultOptions(&allocator);
-  std::string profiling_info = model_->EndProfiling(allocator);
+//   // ビームサーチが終わった時点でプロファイリングを終了
+//   OrtAllocator* allocator;
+//   Ort::GetApi().GetAllocatorWithDefaultOptions(&allocator);
+//   std::string profiling_info = model_->EndProfiling(allocator);
 
-  std::cout << profiling_info;
+//   std::cout << profiling_info;
 }
 
 void OnlineTransducerModifiedBeamSearchDecoder::UpdateDecoderOut(
@@ -255,6 +255,5 @@ void OnlineTransducerModifiedBeamSearchDecoder::UpdateDecoderOut(
   Ort::Value decoder_input = model_->BuildDecoderInput({*result});
   result->decoder_out = model_->RunDecoder(std::move(decoder_input));
 }
-
 
 }  // namespace sherpa_onnx

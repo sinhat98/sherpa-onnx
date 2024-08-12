@@ -234,4 +234,8 @@ bool OnlineRecognizer::IsEndpoint(OnlineStream *s) const {
 
 void OnlineRecognizer::Reset(OnlineStream *s) const { impl_->Reset(s); }
 
-}  // namespace sherpa_onnx
+std::string OnlineRecognizer::EndProfiling() const {
+  return impl_->EndProfiling();
+}  
+
+} // namespace sherpa_onnx

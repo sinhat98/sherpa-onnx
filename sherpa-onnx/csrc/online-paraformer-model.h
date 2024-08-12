@@ -37,6 +37,11 @@ class OnlineParaformerModel {
                                          Ort::Value acoustic_embedding_length,
                                          std::vector<Ort::Value> states) const;
 
+  virtual std::string EndProfiling(OrtAllocator* allocator) {
+    // デフォルトの動作: 空テキストを返す
+    return "";
+  }
+
   /** Return the vocabulary size of the model
    */
   int32_t VocabSize() const;

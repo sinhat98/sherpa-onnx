@@ -152,6 +152,9 @@ class OnlineRecognizerParaformerImpl : public OnlineRecognizerImpl {
     return s->GetNumProcessedFrames() + chunk_size_ < s->NumFramesReady();
   }
 
+  // dummy
+  std::string EndProfiling() const override { return ""; }
+
   void DecodeStreams(OnlineStream **ss, int32_t n) const override {
     // TODO(fangjun): Support batch size > 1
     for (int32_t i = 0; i != n; ++i) {

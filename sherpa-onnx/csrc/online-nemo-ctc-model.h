@@ -23,6 +23,11 @@ class OnlineNeMoCtcModel : public OnlineCtcModel {
  public:
   explicit OnlineNeMoCtcModel(const OnlineModelConfig &config);
 
+  virtual std::string EndProfiling(OrtAllocator* allocator) {
+    // デフォルトの動作: 空テキストを返す
+    return "";
+  }
+
 #if __ANDROID_API__ >= 9
   OnlineNeMoCtcModel(AAssetManager *mgr, const OnlineModelConfig &config);
 #endif

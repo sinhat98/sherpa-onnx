@@ -117,7 +117,9 @@ void PybindOnlineRecognizer(py::module *m) {
            py::call_guard<py::gil_scoped_release>())
       .def("is_endpoint", &PyClass::IsEndpoint,
            py::call_guard<py::gil_scoped_release>())
-      .def("reset", &PyClass::Reset, py::call_guard<py::gil_scoped_release>());
+      .def("reset", &PyClass::Reset, py::call_guard<py::gil_scoped_release>())
+      .def("end_profiling", &PyClass::EndProfiling,
+           py::call_guard<py::gil_scoped_release>());
 }
 
 }  // namespace sherpa_onnx

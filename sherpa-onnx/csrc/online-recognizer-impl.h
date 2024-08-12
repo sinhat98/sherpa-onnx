@@ -62,6 +62,8 @@ class OnlineRecognizerImpl {
 
   virtual void Reset(OnlineStream *s) const = 0;
 
+  virtual std::string EndProfiling() const = 0;
+
   std::string ApplyInverseTextNormalization(std::string text) const;
 
  private:

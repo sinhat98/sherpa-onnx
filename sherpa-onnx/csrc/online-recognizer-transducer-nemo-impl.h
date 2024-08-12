@@ -204,6 +204,17 @@ class OnlineRecognizerTransducerNeMoImpl : public OnlineRecognizerImpl {
     stream->SetNeMoDecoderStates(model_->GetDecoderInitStates());
   }
 
+  // End profiling and return profiling info
+  std::string EndProfiling() const {
+    OrtAllocator* allocator;
+    auto status = Ort::GetApi().GetAllocatorWithDefaultOptions(&allocator);
+    if (status != nullptr) {
+      SHERPA_ONNX_LOGE("Failed to get allocator with default options");
+      exit(-1);
+    }
+    return model_->EndProfiling(allocator);
+  }
+  
  private:
   void PostInit() {
     config_.feat_config.nemo_normalize_type =

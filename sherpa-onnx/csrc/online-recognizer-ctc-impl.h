@@ -228,6 +228,17 @@ class OnlineRecognizerCtcImpl : public OnlineRecognizerImpl {
     s->Reset();
   }
 
+  // End profiling and return profiling info
+  std::string EndProfiling() const {
+    OrtAllocator* allocator;
+    auto status = Ort::GetApi().GetAllocatorWithDefaultOptions(&allocator);
+    if (status != nullptr) {
+      SHERPA_ONNX_LOGE("Failed to get allocator with default options");
+      exit(-1);
+    }
+    return model_->EndProfiling(allocator);
+  }
+
  private:
   void InitDecoder() {
     if (!sym_.Contains("<blk>") && !sym_.Contains("<eps>") &&

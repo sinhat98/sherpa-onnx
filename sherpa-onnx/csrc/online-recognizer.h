@@ -203,6 +203,9 @@ class OnlineRecognizer {
   // after calling this function, IsEndpoint(s) will return false
   void Reset(OnlineStream *s) const;
 
+  // プロファイリングを終了するためのメソッド
+  std::string EndProfiling() const;
+
  private:
   std::unique_ptr<OnlineRecognizerImpl> impl_;
 };

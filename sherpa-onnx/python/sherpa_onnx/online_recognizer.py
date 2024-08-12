@@ -838,3 +838,6 @@ class OnlineRecognizer(object):
 
     def reset(self, s: OnlineStream) -> bool:
         return self.recognizer.reset(s)
+      
+    def end_profiling(self) -> str:
+        return self.recognizer.end_profiling()
